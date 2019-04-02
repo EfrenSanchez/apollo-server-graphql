@@ -1,45 +1,55 @@
-const { ApolloServer, gql } = require('apollo-server');
+// Scalar types represent the leaves of an operation and always resolve to concrete data. 
+// - Int: Signed 32‐bit integer
+// - Float: Signed double-precision floating-point value
+// - String: UTF‐8 character sequence
+// - Boolean: true or false
+// - ID (serialized as String): A unique identifier, often used to refetch an object or as the key for a cache.
 
-// This is a (sample) collection of books we'll be able to query.
-const books = [
-  {
-    title: 'Harry Potter and the Chamber of Secrets',
-    author: 'J.K. Rowling',
-  },
-  {
-    title: 'Jurassic Park',
-    author: 'Michael Crichton',
-  },
-];
 
-// Type definitions define the "shape" of your data and specify
-// which ways the data can be fetched from the GraphQL server.
-const typeDefs = gql`
-  # Comments in GraphQL are defined with the hash (#) symbol.
+gql`
+  # ---- Object type ----
   type Book {
     title: String
     author: String
   }
 
-  # The "Query" type is the root of all GraphQL queries.
+  # ---- Query type ----
   type Query {
     books: [Book]
   }
+
+  # ---- Mutation type ----
+  type Mutation {
+    addBook(title: String, author: String): Book
+  }
+
+  # ---- Response type ----
+  interface MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+  }
+
+  type UpdateBookMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    book: Book
+  }
+
+  # ---- Input Type ----
+  # type Mutation {
+  #   createPost(title: String, body: String, mediaUrls: [String]): Post
+  # }
+
+  type Mutation {
+    createPost(post: PostAndMediaInput): Post
+  }
+  
+  input PostAndMediaInput {
+    title: String
+    body: String
+    mediaUrls: [String]
+  }
 `;
 
-// Resolvers define the technique for fetching the types in the schema.
-const resolvers = {
-  Query: {
-    books: () => books,
-  },
-};
-
-// In the most basic sense, the ApolloServer can be started
-// by passing type definitions (typeDefs) and the resolvers
-// responsible for fetching the data for those types.
-const server = new ApolloServer({ typeDefs, resolvers });
-
-// This `listen` method launches a web-server.
-server.listen().then(({ url }) => {
-  console.log(`🚀  Server ready at ${url}`);
-});
